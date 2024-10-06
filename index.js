@@ -28,17 +28,21 @@ client.on('ready', () => {
 let expectingDNI = {};
 
 client.on('message', (message) => {
-    const chatId = message.from;  
+    const chatId = message.from;
+    console.log(message.body);
+    
 
-    db.get("SELECT chat_id FROM usuarios WHERE chat_id = ?", [chatId], (err, row) => {
-        if (err) {
-            console.error(err);
-        } else if (!row) {
+    if (!message.isGroupMsg) {
+        db.get("SELECT chat_id FROM usuarios WHERE chat_id = ?", [chatId], (err, row) => {
+            if (err) {
+                console.error(err);
+            } else if (!row) {
+                message.reply(`¡Hola! Bienvenido/a al consultor de cuentas de AQUANQA.\nEstamos aquí para ayudarte. Para conocer en qué banco se abrió tu cuenta y cuál es tu número de cuenta, simplemente envía la palabra !micuenta.\n\n¡Estamos a tu disposición para cualquier consulta!`);
+                db.run("INSERT INTO usuarios (chat_id) VALUES (?)", [chatId]);
+            }
+        });
+    }
 
-            message.reply(`¡Hola! Bienvenido/a al consultor de cuentas de AQUANQA.\nEstamos aquí para ayudarte. Para conocer en qué banco se abrió tu cuenta y cuál es tu número de cuenta, simplemente envía la palabra !micuenta.\n\n¡Estamos a tu disposición para cualquier consulta!`);
-            db.run("INSERT INTO usuarios (chat_id) VALUES (?)", [chatId]);
-        }
-    });
 
 
     if (message.body.toLowerCase() === '!micuenta') {
@@ -55,7 +59,7 @@ client.on('message', (message) => {
                 message.reply('Hubo un error al buscar tu información. Vuelve a usar !micuenta');
                 console.error(err);
             } else if (row) {
-                message.reply(`¡Hola, ${row.nombre.trim()}! 🎉\nSe te ha aperturado tu cuenta en ${row.banco.trim()} con el número: ${row.cuenta_banco}.\nSi necesitas más información, ¡no dudes en preguntar!\n\n¡Gracias por pertenecer a la familia AQUANQA! 🤗`);
+                message.reply(`¡Hola, ${row.nombre.trim()}! 🎉\nSe te ha aperturado tu cuenta en ${row.banco.trim()} con el número: ${row.cuenta_banco.trim()}.\nSi necesitas más información, ¡no dudes en preguntar!\n\n¡Gracias por pertenecer a la familia AQUANQA! 🤗`);
             } else {
                 message.reply('No encontré ninguna información asociada a ese DNI. Vuelve a enviar la palabra !micuenta para consultar otro DNI.');
             }
